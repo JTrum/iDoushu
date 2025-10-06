@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布 - 书小红风格</title>
+  <style>
+  :root { --brand:#ff2442; --muted:#666; --soft:#f8f9fb; --border:#e8e8e8; --bg:#fff; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:var(--soft);color:#222}
+
+  /* 通用布局（与首页一致） */
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:220px;background:var(--bg);border-right:1px solid var(--border);padding:16px 12px;position:sticky;top:0;height:100vh}
+  .logo{display:flex;align-items:center;gap:10px;padding:8px 10px;font-weight:700;color:var(--brand)}
+  .nav{margin-top:8px;display:grid;gap:6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;color:#222;text-decoration:none}
+  .nav-item:hover{background:#fff1f3}
+  .nav-item.active{background:#ffecef;color:var(--brand)}
+  .nav-item .icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;color:var(--brand)}
+  .main{flex:1;min-width:0}
+
+  /* 页面自身样式 */
+  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+  .tabs{display:flex;gap:28px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}
+  .tab{padding:16px 4px;cursor:pointer;color:var(--muted);position:relative}
+  .tab.active{color:#222;font-weight:700}
+  .tab.active::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#222;border-radius:2px}
+
+  .notice{background:#fff6e5;border:1px solid #ffe7b3;color:#8a5b00;border-radius:8px;padding:10px 12px;margin:16px 0}
+
+  .card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .uploader{border:2px dashed var(--border);border-radius:12px;min-height:340px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#fafbfc;transition:border-color .2s}
+  .uploader.dragover{border-color:var(--brand);background:#fff1f3}
+  .cloud{font-size:72px;opacity:.2;margin-bottom:10px}
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer}
+  .btn.secondary{background:#fff;color:#222;border:1px solid var(--border)}
+  .hint{color:var(--muted);font-size:13px;margin-top:8px}
+
+  .grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:16px}
+  .preview{background:#000;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:240px}
+  .preview video,.preview img{max-width:100%;max-height:360px}
+
+  .form{display:grid;gap:12px}
+  .row{display:grid;gap:8px}
+  input[type="text"], textarea, select{padding:10px 12px;border:1px solid var(--border);border-radius:8px;outline:none}
+  textarea{min-height:110px;font-family:inherit}
+  .tips{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+  .tip{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--muted);font-size:13px}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:10px}
+  .json{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:10px;white-space:pre-wrap}
+  .back{position:fixed;right:18px;bottom:18px}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="logo">
+        <span style="font-size:20px">🟥</span>
+        <span>书小红</span>
+      </div>
+      <div class="nav">
+        <a href="index.html" class="nav-item"><span class="icon">🏠</span><span>发现</span></a>
+        <div class="nav-item active"><span class="icon">➕</span><span>发布</span></div>
+      </div>
+    </aside>
+
+    <!-- 主内容区域 -->
+    <main class="main">
+      <div class="wrap">
+        <div class="tabs">
+          <div class="tab active" data-type="video">上传视频</div>
+          <div class="tab" data-type="image">上传图文</div>
+          <div class="tab" data-type="article">写长文</div>
+        </div>
+
+        <div class="notice">你还未绑定手机号，前往 APP 端【设置】-【账户与安全】-【手机号】绑定后才可发布笔记。<a href="javascript:void(0)">我了解了</a></div>
+
+        <div class="card">
+          <div id="drop" class="uploader">
+            <div class="cloud">☁️</div>
+            <div>拖拽文件到此或</div>
+            <div style="margin-top:12px"><button id="pick" class="btn">上传{{ label }}</button></div>
+            <div class="hint">支持 mp4、mov（推荐 720P 及以上），单个文件 ≤ 2GB</div>
+            <input id="file" type="file" accept="video/*,image/*" hidden>
+          </div>
+
+          <div class="grid">
+            <div class="preview" id="preview">预览区</div>
+            <div class="form">
+              <div class="row">
+                <label>标题</label>
+                <input id="title" type="text" placeholder="填写标题，如：周末vlog/今日穿搭/旅行记录" />
+              </div>
+              <div class="row">
+                <label>分类</label>
+                <select id="category">
+                  <option>推荐</option>
+                  <option>穿搭</option>
+                  <option>美食</option>
+                  <option>家居</option>
+                  <option>旅行</option>
+                  <option>数码</option>
+                </select>
+              </div>
+              <div class="row">
+                <label>作者</label>
+                <input id="author" type="text" placeholder="你的昵称，如：Joyce君君" />
+              </div>
+              <div class="row">
+                <label>头像链接（可选）</label>
+                <input id="avatar" type="text" placeholder="https://.../avatar.png" />
+              </div>
+              <div class="row">
+                <label>标签（可选）</label>
+                <input id="tag" type="text" placeholder="VLOG / 新品 / 分享 等" />
+              </div>
+              <div class="actions">
+                <button id="gen" class="btn">生成 JSON 条目</button>
+                <button id="copy" class="btn secondary">复制到剪贴板</button>
+              </div>
+              <div id="json" class="json" style="display:none"></div>
+            </div>
+          </div>
+
+          <div class="tips">
+            <div class="tip">
+              <b>视频大小</b><br/>
+              支持 60 分钟以内，单文件最大 2GB。
+            </div>
+            <div class="tip">
+              <b>视频格式</b><br/>
+              推荐 mp4、mov；网页端播放更稳定。
+            </div>
+            <div class="tip">
+              <b>分辨率</b><br/>
+              推荐 720P（1280×720）及以上，体验更佳。
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <a class="back btn" href="index.html">返回书小红首页</a>
+
+  <script>
+  const state = { type:'video', file:null };
+  const tabs = document.querySelectorAll('.tab');
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('file');
+  const pickBtn = document.getElementById('pick');
+  const preview = document.getElementById('preview');
+  const jsonBox = document.getElementById('json');
+
+  const titleEl = document.getElementById('title');
+  const catEl = document.getElementById('category');
+  const authorEl = document.getElementById('author');
+  const avatarEl = document.getElementById('avatar');
+  const tagEl = document.getElementById('tag');
+
+  // 切换标签
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    state.type = t.dataset.type === 'image' ? 'image' : (t.dataset.type === 'article' ? 'article' : 'video');
+    fileInput.accept = state.type==='image' ? 'image/*' : 'video/*,image/*';
+    pickBtn.textContent = '上传' + (state.type==='image' ? '图片' : (state.type==='article' ? '封面' : '视频'));
+  }));
+
+  // 选择/拖拽
+  pickBtn.onclick = () => fileInput.click();
+  fileInput.onchange = () => handleFiles(fileInput.files);
+  ;['dragenter','dragover'].forEach(evt => drop.addEventListener(evt,e=>{e.preventDefault();drop.classList.add('dragover');}))
+  ;['dragleave','drop'].forEach(evt => drop.addEventListener(evt,e=>{e.preventDefault();drop.classList.remove('dragover');}))
+  drop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+  function handleFiles(files){
+    if(!files || !files[0]) return;
+    const f = files[0];
+    state.file = f;
+    preview.innerHTML='';
+    const url = URL.createObjectURL(f);
+    if(f.type.startsWith('image/')){
+      const img = new Image(); img.src=url; preview.appendChild(img); state.type='image';
+      tabs.forEach(x=>x.classList.remove('active')); document.querySelector('.tab[data-type="image"]').classList.add('active');
+    }else{
+      const vd = document.createElement('video'); vd.controls=true; vd.src=url; preview.appendChild(vd); state.type='video';
+      tabs.forEach(x=>x.classList.remove('active')); document.querySelector('.tab[data-type="video"]').classList.add('active');
+    }
+  }
+
+  function makeId(){ return Math.floor(Date.now()/1000) }
+
+  document.getElementById('gen').onclick = () => {
+    const fileName = state.file ? state.file.name : 'your-file.mp4';
+    // 建议你把文件放到项目根目录的 video/ 下
+    const entry = {
+      id: makeId(),
+      category: catEl.value || '推荐',
+      type: state.type === 'image' ? 'image' : 'video',
+      src: (state.type==='image' ? 'images/' : 'video/') + fileName,
+      title: titleEl.value || (state.type==='image' ? '今日图文' : '今日VLOG'),
+      author: authorEl.value || '匿名作者',
+      avatar: avatarEl.value || 'https://i.pravatar.cc/100?img=8',
+      likes: Math.floor(Math.random()*3000+200),
+      tag: tagEl.value || (state.type==='image' ? '图文' : 'VLOG')
+    };
+    jsonBox.style.display='block';
+    jsonBox.textContent = JSON.stringify(entry, null, 2);
+  };
+
+  document.getElementById('copy').onclick = async () => {
+    if(!jsonBox.textContent){ alert('请先生成 JSON 条目'); return; }
+    try{ await navigator.clipboard.writeText(jsonBox.textContent); alert('已复制，粘贴到 videos.json 的数组里即可'); }catch(e){ alert('复制失败，请手动选择文本复制'); }
+  };
+  </script>
+</body>
+</html>

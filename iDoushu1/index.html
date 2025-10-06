@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>书小红 · 发现好生活</title>
+  <style>
+  :root {
+    --brand: #ff2442;
+    --text: #222;
+    --muted: #666;
+    --bg: #fff;
+    --soft: #f5f6f7;
+    --card: #ffffff;
+    --border: #eee;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif; color: var(--text); background: var(--soft); }
+
+  /* 布局 */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; background: var(--bg); border-right: 1px solid var(--border); padding: 16px 12px; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 8px 10px; font-weight: 700; color: var(--brand); }
+  .nav { margin-top: 8px; display: grid; gap: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; color: var(--text); text-decoration: none; }
+  .nav-item:hover { background: #fff1f3; }
+  .nav-item.active { background: #ffecef; color: var(--brand); }
+  .nav-item .icon { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--brand); }
+
+  .main { flex: 1; min-width: 0; }
+
+  /* 顶部条 */
+  .topbar { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .topbar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 12px 20px; }
+  .search { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--soft); border-radius: 999px; padding: 10px 14px; }
+  .search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; }
+  .top-links { display: flex; align-items: center; gap: 16px; color: var(--muted); }
+  .pill { padding: 6px 12px; border-radius: 999px; background: #fff1f3; color: var(--brand); font-weight: 600; }
+
+  /* 标签导航 */
+  .tabs { max-width: 1200px; margin: 0 auto; display: flex; gap: 18px; padding: 12px 20px; background: var(--bg); }
+  .tab { color: var(--muted); cursor: pointer; }
+  .tab.active { color: var(--text); font-weight: 700; position: relative; }
+  .tab.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; height: 3px; background: var(--text); border-radius: 2px; }
+
+  /* 瀑布流 */
+  .content { max-width: 1200px; margin: 0 auto; padding: 18px 16px 40px; }
+  .waterfall { column-count: 4; column-gap: 16px; }
+  @media (max-width: 1200px) { .waterfall { column-count: 3; } .sidebar { width: 200px; } }
+  @media (max-width: 900px)  { .waterfall { column-count: 2; } .sidebar { display: none; } .topbar-inner { padding-left: 16px; padding-right: 16px; } .tabs { padding-left: 16px; } }
+  @media (max-width: 520px)  { .waterfall { column-count: 1; } }
+
+  .card { break-inside: avoid; background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.05); margin: 0 0 16px; border: 1px solid var(--border); }
+  .media { position: relative; width: 100%; }
+  .media img, .media video { width: 100%; display: block; }
+  .badge { position: absolute; left: 8px; top: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 999px; }
+
+  .meta { padding: 12px; }
+  .title { font-size: 14px; line-height: 1.4; margin: 0 0 10px; }
+  .user { display: flex; align-items: center; justify-content: space-between; }
+  .author { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+  .like { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; padding: 6px 8px; border-radius: 999px; }
+  .like:hover { background: #fff1f3; color: var(--brand); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="layout">
+      <!-- 左侧导航 -->
+      <aside class="sidebar">
+        <div class="logo">
+          <span style="font-size:20px">🟥</span>
+          <span>书小红</span>
+        </div>
+        <div class="nav">
+          <div class="nav-item active"><span class="icon">🏠</span><span>发现</span></div>
+          <a href="publish.html" class="nav-item"><span class="icon">➕</span><span>发布</span></a>
+        </div>
+      </aside>
+
+      <!-- 主区域 -->
+      <main class="main">
+        <!-- 顶部搜索 -->
+        <div class="topbar">
+          <div class="topbar-inner">
+            <div class="pill">推荐</div>
+            <div class="search">
+              <span>🔎</span>
+              <input v-model="searchQuery" placeholder="搜索书小红" />
+            </div>
+            <div class="top-links">
+              <span>创作中心</span>
+              <span>业务合作</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 标签导航 -->
+        <div class="tabs">
+          <div class="tab" :class="{active: activeTab==='推荐'}" @click="activeTab='推荐'">推荐</div>
+          <div class="tab" :class="{active: activeTab==='穿搭'}" @click="activeTab='穿搭'">穿搭</div>
+          <div class="tab" :class="{active: activeTab==='美食'}" @click="activeTab='美食'">美食</div>
+          <div class="tab" :class="{active: activeTab==='家居'}" @click="activeTab='家居'">家居</div>
+          <div class="tab" :class="{active: activeTab==='旅行'}" @click="activeTab='旅行'">旅行</div>
+          <div class="tab" :class="{active: activeTab==='数码'}" @click="activeTab='数码'">数码</div>
+        </div>
+
+        <!-- 瀑布流内容 -->
+        <div class="content">
+          <div class="waterfall">
+            <div v-for="post in visiblePosts" :key="post.id" class="card">
+              <div class="media">
+                <img v-if="post.type==='image'" :src="post.src" :alt="post.title" loading="lazy">
+                <video v-else :src="post.src" controls preload="metadata"></video>
+                <div class="badge" v-if="post.tag">{{ post.tag }}</div>
+              </div>
+              <div class="meta">
+                <h3 class="title">{{ post.title }}</h3>
+                <div class="user">
+                  <div class="author">
+                    <img :src="post.avatar" class="avatar" alt="">
+                    <span>{{ post.author }}</span>
+                  </div>
+                  <div class="like" @click="like(post)">❤️ {{ post.likes }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+  const { createApp, ref, computed } = Vue;
+
+  function makePosts() {
+    const cats = ['推荐', '穿搭', '美食', '家居', '旅行', '数码'];
+    const list = [];
+    for (let i = 1; i <= 20; i++) {
+      const c = cats[i % cats.length];
+      const isVideo = i % 5 === 0;
+      list.push({
+        id: i,
+        category: c,
+        type: isVideo ? 'video' : 'image',
+        src: isVideo
+          ? 'https://www.w3schools.com/html/mov_bbb.mp4'
+          : `https://picsum.photos/seed/p${i}/3${(i%3)+2}0/5${(i%4)+2}0`,
+        title: c + ' · ' + ['日常VLOG','高分好物','出游随手拍','今日穿搭','分享清单'][i%5],
+        author: ['小几','阿黎','Joyce','木木','夏木南'][i%5],
+        avatar: `https://i.pravatar.cc/100?img=${(i%70)+1}`,
+        likes: Math.floor(Math.random()*5000+50),
+        tag: isVideo ? 'VLOG' : (i%7===0?'新品':'')
+      });
+    }
+    return list;
+  }
+
+  createApp({
+    setup() {
+      const searchQuery = ref('');
+      const activeTab = ref('推荐');
+      const posts = ref([]);
+
+      // 从独立数据文件加载
+      fetch('videos.json')
+        .then(r => { if (!r.ok) throw new Error('load fail'); return r.json(); })
+        .then(data => { posts.value = Array.isArray(data) ? data : makePosts(); })
+        .catch(() => { posts.value = makePosts(); });
+
+      const filtered = computed(() => {
+        const q = searchQuery.value.trim();
+        return posts.value.filter(p => {
+          const hitTab = activeTab.value === '推荐' || p.category === activeTab.value;
+          if (!q) return hitTab;
+          return hitTab && (p.title.includes(q) || p.author.includes(q));
+        });
+      });
+
+      function like(post) { post.likes += 1; }
+
+      return { searchQuery, activeTab, visiblePosts: filtered, like };
+    }
+  }).mount('#app');
+  </script>
+</body>
+</html>
